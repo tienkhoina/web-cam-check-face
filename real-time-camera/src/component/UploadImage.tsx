@@ -1,11 +1,14 @@
-import React, { useState } from "react";
-import { sendImageBase64 } from "../services/imageService"; // Import hàm gửi ảnh
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { sendImageBase64 } from "../services/imageService";
+import axiosInstance from "../api/axiosInstance"; // Import axiosInstance
 
 const UploadImage: React.FC = () => {
-  const [image, setImage] = useState<File | null>(null); // State để lưu ảnh
-  const [imagePreview, setImagePreview] = useState<string | null>(null); // State để lưu ảnh base64 cho việc hiển thị
+  const [image, setImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [userInfo, setUserInfo] = useState({ name: "", age: "", gender: "" });
+  const navigate = useNavigate();
 
-  // Hàm xử lý thay đổi khi người dùng chọn ảnh
   const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files ? event.target.files[0] : null;
     if (file) {
@@ -14,16 +17,15 @@ const UploadImage: React.FC = () => {
       // Tạo ảnh preview từ file đã chọn
       const reader = new FileReader();
       reader.onloadend = () => {
-        setImagePreview(reader.result as string); // Cập nhật ảnh preview
+        setImagePreview(reader.result as string);
       };
-      reader.readAsDataURL(file); // Đọc ảnh dưới dạng Base64
+      reader.readAsDataURL(file);
     }
   };
 
-  // Hàm gửi ảnh lên server
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    
+
     if (!image) {
       alert("Please select an image.");
       return;
@@ -32,15 +34,29 @@ const UploadImage: React.FC = () => {
     try {
       const reader = new FileReader();
       reader.onloadend = () => {
-        const base64Image = reader.result as string;  // Đọc file thành Base64
-        sendImageBase64(base64Image);  // Gửi ảnh dưới dạng Base64
+        const base64Image = reader.result as string;
+        sendImageBase64(base64Image);
       };
-      reader.readAsDataURL(image);  // Đọc file ảnh
+      reader.readAsDataURL(image);
     } catch (error) {
       console.error("Error uploading image:", error);
       alert("Failed to upload image.");
     }
   };
+
+  // Lấy thông tin người dùng từ backend
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      try {
+        const response = await axiosInstance.get("/userinfo"); // Sử dụng axiosInstance
+        setUserInfo(response.data);
+      } catch (error) {
+        console.error("Error fetching user info:", error);
+      }
+    };
+
+    fetchUserInfo();
+  }, []);
 
   return (
     <div>
@@ -64,6 +80,22 @@ const UploadImage: React.FC = () => {
           <img src={imagePreview} alt="Preview" style={{ width: "100%", maxHeight: "400px" }} />
         </div>
       )}
+
+      {/* Hiển thị thông tin người dùng */}
+      <div style={{ marginTop: "20px" }}>
+        <h2>User Information</h2>
+        <p><strong>Name:</strong> {userInfo.name}</p>
+        <p><strong>Age:</strong> {userInfo.age}</p>
+        <p><strong>Gender:</strong> {userInfo.gender}</p>
+      </div>
+
+      {/* Nút điều hướng */}
+      <button
+        style={{ marginTop: "20px" }}
+        onClick={() => navigate("/createUser")}
+      >
+        Create New User
+      </button>
     </div>
   );
 };

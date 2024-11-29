@@ -33,7 +33,7 @@ def get_face_embedding(image_path):
     face_descriptor = np.array(face_rec_model.compute_face_descriptor(image, shape))
     return face_descriptor
 
-def compare_faces_dlib(image1_path, image2_path, threshold=0.6):
+def compare_faces_dlib(image1_path, image2_path, threshold=0.5):
     """
     So sánh hai ảnh khuôn mặt bằng embeddings từ Dlib ResNet.
     Args:
@@ -53,3 +53,7 @@ def compare_faces_dlib(image1_path, image2_path, threshold=0.6):
     print(f"Khoảng cách giữa hai khuôn mặt: {distance}")
 
     return distance < threshold
+
+def get_distance_embedding(embedding1,embedding2):
+    distance = np.linalg.norm(embedding1 - embedding2)
+    return distance
