@@ -69,7 +69,7 @@ def get_user_info():
         
         # Khởi tạo biến lưu trữ thông tin người dùng gần nhất
         last = None
-        mindistance = 1000
+        maxdistance = 0
         isExists = False
         
         # So sánh các embedding với dữ liệu trong cơ sở dữ liệu
@@ -84,14 +84,14 @@ def get_user_info():
             distance = get_distance_embedding(embedding1, embedding2)
 
 
-            if distance < mindistance:
-                mindistance = distance
+            if distance > maxdistance:
+                maxdistance = distance
                 last = record
 
             # Nếu khoảng cách nhỏ hơn ngưỡng 0.5, coi như người dùng đã tồn tại
-            if mindistance < 0.5:
+            if maxdistance >= 0.8:
                 isExists = True
-        print(mindistance)        
+        print("khoảng cách tìm thấy:",maxdistance)        
 
         # Kiểm tra nếu người dùng đã tồn tại
         if isExists:
@@ -150,7 +150,7 @@ def create_user():
 
         # Khởi tạo biến lưu trữ thông tin người dùng gần nhất
         last = None
-        mindistance = 1000
+        maxdistance = 0
         isExists = False
 
         # So sánh các embedding với dữ liệu trong cơ sở dữ liệu
@@ -164,12 +164,12 @@ def create_user():
 
             distance = get_distance_embedding(embedding1, embedding2)
 
-            if distance < mindistance:
-                mindistance = distance
+            if distance > maxdistance:
+                maxdistance = distance
                 last = record
 
-            # Nếu khoảng cách nhỏ hơn ngưỡng 0.6, coi như người dùng đã tồn tại
-            if mindistance < 0.5:
+           
+            if maxdistance > 0.8:
                 isExists = True
 
         if isExists:
@@ -178,7 +178,7 @@ def create_user():
                 "message": "User already exists"
             })
 
-        # Nếu không tồn tại, tạo người dùng mới
+        
         facecode_new = encode_embedding(embedding1)
         if not facecode_new:
             return jsonify({
@@ -193,6 +193,7 @@ def create_user():
             gender=gender,
             facecode=facecode_new,
             created_at=datetime.now()
+            
         )
 
         session.add(new_face_info)
